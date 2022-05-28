@@ -4,8 +4,12 @@ export interface Typegen0 {
   "@@xstate/typegen": true;
   eventsCausingActions: {
     spawnChild: "SPAWN_CHILD";
+    saveStateToLocalStorage: "xstate.after(3000)#(machine).waiting";
   };
   internalEvents: {
+    "xstate.after(3000)#(machine).waiting": {
+      type: "xstate.after(3000)#(machine).waiting";
+    };
     "xstate.init": { type: "xstate.init" };
   };
   invokeSrcNameMap: {};

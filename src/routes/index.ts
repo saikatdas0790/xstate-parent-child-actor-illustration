@@ -1,4 +1,4 @@
-import { assign, createMachine, spawn, type ActorRefFrom } from "xstate";
+import { assign, createMachine, spawn, State, type ActorRefFrom } from "xstate";
 
 const childMachine = createMachine({
   initial: "start",
@@ -13,7 +13,7 @@ const childMachine = createMachine({
   },
 });
 
-const parentMachine = createMachine(
+export const parentMachine = createMachine(
   {
     initial: "waiting",
     tsTypes: {} as import("./index.typegen").Typegen0,
@@ -23,13 +23,19 @@ const parentMachine = createMachine(
       };
     },
     context: {
-      childMachineReferences: [],
+      childMachineReferences: [] as ActorRefFrom<typeof childMachine>[],
     },
     states: {
       waiting: {
         on: {
           SPAWN_CHILD: {
             actions: ["spawnChild"],
+            target: "waiting",
+          },
+        },
+        after: {
+          3000: {
+            actions: ["saveStateToLocalStorage"],
             target: "waiting",
           },
         },
@@ -46,6 +52,22 @@ const parentMachine = createMachine(
           ];
         },
       }),
+      saveStateToLocalStorage: (context, event) => {
+        if (context.childMachineReferences.length > 0) {
+          const allStates = context.childMachineReferences.reduce(
+            (acc, childMachineReference) => {
+              acc.push(childMachineReference.getSnapshot());
+              return acc;
+            },
+            [] as any[]
+          );
+          console.log(allStates);
+          localStorage.setItem(
+            "childMachineReferences",
+            JSON.stringify(allStates)
+          );
+        }
+      },
     },
   }
 );
