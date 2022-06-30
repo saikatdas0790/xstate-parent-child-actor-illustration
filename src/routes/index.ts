@@ -24,7 +24,7 @@ const childMachine = createMachine(
   {
     actions: {
       decreaseAge: assign({
-        age: (context, event) => context.age - 2,
+        age: (context, event) => context.age - 1,
       }),
       increaseAge: assign({
         age: (context, event) => context.age + 5,
