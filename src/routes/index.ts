@@ -1,26 +1,49 @@
 import { assign, createMachine, spawn, State, type ActorRefFrom } from "xstate";
 
-const childMachine = createMachine({
-  initial: "start",
-  context: {
-    name: "",
-    age: 0,
+const childMachine = createMachine(
+  {
+    initial: "ready",
+    context: {
+      name: "",
+      age: 0,
+    },
+    states: {
+      ready: {
+        entry: "setName",
+        after: {
+          5000: {
+            actions: "increaseAge",
+          },
+          2000: {
+            actions: "decreaseAge",
+          },
+        },
+      },
+    },
   },
-  states: {
-    start: {},
-    waiting: {},
-    ready: {},
-  },
-});
+  {
+    actions: {
+      decreaseAge: assign({
+        age: (context, event) => context.age - 2,
+      }),
+      increaseAge: assign({
+        age: (context, event) => context.age + 5,
+      }),
+      setName: assign({
+        name: (context, event) => Date.now().toLocaleString(),
+      }),
+    },
+  }
+);
 
 export const parentMachine = createMachine(
   {
     initial: "waiting",
     tsTypes: {} as import("./index.typegen").Typegen0,
-    schema: {} as {
-      context: {
+    schema: {
+      context: {} as {
         childMachineReferences: ActorRefFrom<typeof childMachine>[];
-      };
+      },
     },
     context: {
       childMachineReferences: [] as ActorRefFrom<typeof childMachine>[],
@@ -35,7 +58,7 @@ export const parentMachine = createMachine(
         },
         after: {
           3000: {
-            actions: ["saveStateToLocalStorage"],
+            actions: ["logCurrentStateToConsole"],
             target: "waiting",
           },
         },
@@ -44,30 +67,20 @@ export const parentMachine = createMachine(
   },
   {
     actions: {
+      logCurrentStateToConsole: (context, event) => {
+        context.childMachineReferences.forEach((child) => {
+          console.log(child.getSnapshot()?.context);
+        });
+      },
       spawnChild: assign({
         childMachineReferences: (context, event) => {
+          console.log(context);
           return [
             ...context.childMachineReferences,
-            spawn(childMachine, `${context.childMachineReferences.length}`),
+            spawn(childMachine, `${Date.now()}`),
           ];
         },
       }),
-      saveStateToLocalStorage: (context, event) => {
-        if (context.childMachineReferences.length > 0) {
-          const allStates = context.childMachineReferences.reduce(
-            (acc, childMachineReference) => {
-              acc.push(childMachineReference.getSnapshot());
-              return acc;
-            },
-            [] as any[]
-          );
-          console.log(allStates);
-          localStorage.setItem(
-            "childMachineReferences",
-            JSON.stringify(allStates)
-          );
-        }
-      },
     },
   }
 );

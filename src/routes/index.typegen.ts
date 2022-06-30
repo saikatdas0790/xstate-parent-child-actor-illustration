@@ -4,7 +4,7 @@ export interface Typegen0 {
   "@@xstate/typegen": true;
   eventsCausingActions: {
     spawnChild: "SPAWN_CHILD";
-    saveStateToLocalStorage: "xstate.after(3000)#(machine).waiting";
+    logCurrentStateToConsole: "xstate.after(3000)#(machine).waiting";
   };
   internalEvents: {
     "xstate.after(3000)#(machine).waiting": {
