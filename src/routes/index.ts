@@ -77,7 +77,10 @@ export const parentMachine = createMachine(
           console.log(context);
           return [
             ...context.childMachineReferences,
-            spawn(childMachine, `${Date.now()}`),
+            spawn(childMachine, {
+              name: `${Date.now()}`,
+              sync: true,
+            }),
           ];
         },
       }),
