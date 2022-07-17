@@ -48,6 +48,11 @@ export const parentMachine = createMachine(
     context: {
       childMachineReferences: [] as ActorRefFrom<typeof childMachine>[],
     },
+    // on: {
+    //   CHILD_STATE_CHANGED: {
+    //     onChange: (stateBeforeChange, stateAfterChange, childName)=>{}
+    //   }
+    // },
     states: {
       waiting: {
         on: {
@@ -77,10 +82,15 @@ export const parentMachine = createMachine(
           console.log(context);
           return [
             ...context.childMachineReferences,
-            spawn(childMachine, {
-              name: `${Date.now()}`,
-              sync: true,
-            }),
+            spawn(
+              childMachine,
+              {
+                name: `${Date.now()}`,
+                sync: true,
+              }
+              // optional third argument is a callback
+              // (previousState, updatedState)=>{}
+            ),
           ];
         },
       }),
